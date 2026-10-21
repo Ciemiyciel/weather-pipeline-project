@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Generated data
+data/
+
+# IDE and OS
+.vscode/
+.DS_Store
