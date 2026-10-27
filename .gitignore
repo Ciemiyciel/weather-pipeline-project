@@ -9,4 +9,4 @@ data/
 
 # IDE and OS
 .vscode/
-.DS_Store
+.DS_Store.env
