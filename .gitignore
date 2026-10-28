@@ -10,3 +10,6 @@ data/
 # IDE and OS
 .vscode/
 .DS_Store.env
+
+#Airflow
+logs/
