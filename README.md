@@ -1,71 +1,185 @@
-
 # Weather Data Pipeline
 
-A Python and PySpark data engineering project that collects
-historical weather data, validates it, transforms it into
-Parquet format, and performs SQL-based analysis.
+A data engineering portfolio project that collects hourly weather data from the Open-Meteo API, processes it with PySpark, stores it in PostgreSQL, and orchestrates the workflow using Apache Airflow and Docker.
 
-## Pipeline
+## Project Overview
 
-1. Extract hourly weather data from the Open-Meteo Archive API.
-2. Save raw API responses as JSON.
-3. Transform nested JSON data into a tabular structure using PySpark.
-4. Validate required columns, null values, and measurement ranges.
-5. Remove duplicate city-timestamp records.
-6. Store processed data in Parquet format.
-7. Run SQL queries to analyze temperature, precipitation,
-   and wind speed.
+The goal of this project is to build an end-to-end ETL pipeline and practice working with APIs, data transformation, relational databases, SQL analytics, containerization, and workflow orchestration.
+
+The pipeline collects historical weather data for Warsaw, Kraków, and Gdańsk, processes the raw responses, validates the resulting dataset, and loads the data into PostgreSQL.
+
+## Architecture
+
+```text
+Open-Meteo API
+      |
+      v
+   Extract
+      |
+      v
+ Raw JSON files
+      |
+      v
+ Transform (PySpark)
+      |
+      v
+ Parquet files
+      |
+      +------> SQL analysis
+      |
+      v
+ PostgreSQL
+      |
+      v
+ Data quality checks
+
+Apache Airflow orchestrates the workflow.
+Docker Compose runs the project services.
+```
 
 ## Technologies
 
-- Python
-- REST API
-- PySpark
-- SQL
-- Parquet
-- pytest
+- **Python** — API requests, pipeline logic, and database loading.
+- **PySpark / Apache Spark** — data transformation and validation.
+- **SQL / PostgreSQL** — data storage, aggregation, and analytical queries.
+- **Apache Airflow** — workflow orchestration and task monitoring.
+- **Docker / Docker Compose** — containerized execution and service management.
+- **Parquet / JSON** — raw and processed data storage.
+- **Git / GitHub** — version control and project documentation.
 
-## Project structure
+## Data Source
+
+The project uses the [Open-Meteo Historical Weather API](https://open-meteo.com/en/docs/historical-weather-api).
+
+The current dataset covers **1–7 October 2025** and contains hourly observations for three Polish cities:
+
+- Warsaw
+- Kraków
+- Gdańsk
+
+Weather variables include:
+
+- Temperature at 2 metres
+- Precipitation
+- Wind speed at 10 metres
+
+## Pipeline Steps
+
+### 1. Extract
+
+The extraction script requests historical weather data from the Open-Meteo API and saves the raw JSON responses for each city.
+
+### 2. Transform
+
+PySpark processes the raw data by:
+
+- Flattening nested hourly arrays into individual records.
+- Converting columns to appropriate data types.
+- Validating required fields and value ranges.
+- Removing duplicate city-timestamp records.
+- Writing the processed dataset in Parquet format.
+
+### 3. Analyze
+
+SQL queries calculate weather statistics using the processed data.
+
+Additional PostgreSQL queries demonstrate analytical SQL techniques, including aggregations, common table expressions (CTEs), window functions, rankings, and moving averages.
+
+### 4. Load
+
+The processed Parquet data is loaded into PostgreSQL.
+
+The table uses a composite key based on city and timestamp. The loading logic supports upserts, allowing existing records to be updated when the same key is loaded again.
+
+### 5. Data Quality Checks
+
+The validation script checks the loaded dataset, including record counts, missing values, expected cities, and basic value constraints.
+
+### 6. Orchestration
+
+Apache Airflow orchestrates the pipeline tasks in dependency order:
+
+`extract → transform → analyze → load → data quality checks`
+
+The DAG can be triggered manually through the Airflow interface.
+
+## Additional SQL Analytics
+
+The project includes a separate SQL file for running analytical queries directly against PostgreSQL.
+
+These queries are intended for interactive analysis and are separate from the main automated workflow.
+
+## Running the Project
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+- Git
+
+### Setup
+
+Clone the repository and enter the project directory:
+
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd weather-data-pipeline
+```
+
+Create a local `.env` file based on `.env.example` and configure the required database settings.
+
+Build the images and start the services:
+
+```bash
+docker compose up -d --build
+```
+
+Open the Airflow interface:
+
+`http://localhost:8080`
+
+Trigger the `weather_data_pipeline` DAG from the Airflow UI to execute the workflow.
+
+To inspect the running services:
+
+```bash
+docker compose ps
+```
+
+To inspect service logs:
+
+```bash
+docker compose logs --tail=100 airflow-scheduler
+```
+
+To stop the services:
+
+```bash
+docker compose down
+```
+
+## Project Structure
 
 ```text
 weather-data-pipeline/
+├── dags/
+│   └── weather_pipeline.py
 ├── src/
 │   ├── extract.py
 │   ├── transform.py
 │   ├── analyze.py
-│   ├── check_out.py
+│   ├── load_postgres.py
+│   ├── check_postgres.py
 │   └── run_pipeline.py
-├── tests/
 ├── sql/
-│   └── analysis.sql
+│   ├── analysis.sql
+│   └── postgres_analytics.sql
 ├── data/
-├── .gitignore
+│   ├── raw/
+│   └── processed/
+├── Dockerfile
+├── Dockerfile.airflow
+├── compose.yaml
+├── requirements.txt
 └── README.md
 ```
-
-## Running the project
-
-Activate the Python virtual environment and install the
-required dependencies.
-
-Run the pipeline from the project root:
-
-```bash
-python src/run_pipeline.py
-```
-
-Run tests:
-
-```bash
-python -m pytest -v
-```
-
-## Data source
-
-Historical weather data is obtained from the
-[Open-Meteo Archive API](https://open-meteo.com/en/docs/historical-weather-api).
-
-## Current scope
-
-The pipeline runs locally and processes hourly weather
-observations for three Polish cities over a selected date range.
