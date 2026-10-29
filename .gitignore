@@ -13,3 +13,4 @@ data/
 
 #Airflow
 logs/
+.venv.broken-backup/
