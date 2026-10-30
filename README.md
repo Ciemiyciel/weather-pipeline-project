@@ -46,6 +46,7 @@ Docker Compose runs the project services.
 - **Docker / Docker Compose** — containerized execution and service management.
 - **Parquet / JSON** — raw and processed data storage.
 - **Git / GitHub** — version control and project documentation.
+- **GitHub Actions** — automated testing and continuous integration (CI).
 
 ## Data Source
 
@@ -109,6 +110,29 @@ The project includes a separate SQL file for running analytical queries directly
 
 These queries are intended for interactive analysis and are separate from the main automated workflow.
 
+## Testing
+
+The project includes automated tests written with **pytest** to verify the extraction and transformation components.
+
+To run the tests locally:
+
+```bash
+python -m pytest -v
+```
+
+### Continuous Integration (GitHub Actions)
+
+The project uses **GitHub Actions** to automatically run tests on every push and pull request.
+
+The workflow:
+- Checks out the repository.
+- Sets up Java 17, required by PySpark.
+- Sets up the Python environment.
+- Installs project dependencies from `requirements.txt`.
+- Runs the test suite using `pytest`.
+
+The tests run in a clean GitHub-hosted environment, helping detect errors and prevent regressions when changes are introduced.
+
 ## Running the Project
 
 ### Prerequisites
@@ -162,6 +186,9 @@ docker compose down
 
 ```text
 weather-data-pipeline/
+├── .github/
+│   └── workflows/
+│       └── tests.yml
 ├── dags/
 │   └── weather_pipeline.py
 ├── src/
